@@ -1,5 +1,5 @@
 from datetime import date
-from views import Index, About
+from views import Index, About, Contacts
 
 
 def secret_front(request):
@@ -15,4 +15,5 @@ fronts = [secret_front, other_front]
 routes = {
     '/': Index(),
     '/about/': About(),
+    '/contacts/': Contacts(),
 }
