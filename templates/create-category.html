@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}
+	Главная
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-header.html" %}
+{% endblock %}
+{% block body %}
+	<div id="site_content">
+		{% include "inc-sidebar.html" %}
+		<h1><strong>Добавление категории</strong></h1>
+        <p><strong>________________________________</strong> </p>
+        <form method="post">
+          <input type="text" name="name" placeholder="Название" >
+			<a href="/category-list/"><button type="submit">Сохранить и вернуться к списку категорий</button></a>
+        </form>
+	</div>
+	{% include "inc-footer.html" %}
+{% endblock %}

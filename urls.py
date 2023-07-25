@@ -1,5 +1,6 @@
 from datetime import date
-from views import Index, About, Contacts
+from views import Index, About, Contacts, TherapyCourseList, TherapyPrograms, \
+    CategoryList, CreateCategory, CreateCourse
 
 
 def secret_front(request):
@@ -16,4 +17,9 @@ routes = {
     '/': Index(),
     '/about/': About(),
     '/contacts/': Contacts(),
+    '/therapy-programs/': TherapyPrograms(),
+    '/therapy-course-list/': TherapyCourseList(),
+    '/category-list/': CategoryList(),
+    '/create-course/': CreateCourse(),
+    '/create-category/': CreateCategory(),
 }

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}
+	Главная
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-header.html" %}
+{% endblock %}
+{% block body %}
+	<div id="site_content">
+		{% include "inc-sidebar.html" %}
+		{% include "inc-therapy-prog.html" %}
+	</div>
+	{% include "inc-footer.html" %}
+{% endblock %}
