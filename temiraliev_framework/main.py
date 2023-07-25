@@ -21,6 +21,7 @@ class Framework:
 
         request = {}
         method = environ['REQUEST_METHOD']
+        request['method'] = method
 
         if method == 'POST':
             data = PostReq().get_request_params(environ)

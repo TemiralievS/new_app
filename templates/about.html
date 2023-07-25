@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}
+	О нас
+{% endblock %}
+{% block style %}
+	{% include "inc-style.html" %}
+{% endblock %}
+{% block menu %}
+	{% include "inc-header.html" %}
+{% endblock %}
+{% block body %}
+	<div id="site_content">
+		{% include "inc-sidebar.html" %}
+		<h1><strong>Центр Психологической Помощи</strong></h1>
+		<p>ㅡ это центр, объединивший лучших психологов страны,</p>
+		<p>работающих в разных научных подходах, что позволяет нам подобрать</p>
+		<p>подход к каждому клиенту и его проблеме.</p>
+		<p>При необходимости в сложной ситуации мы также оказываем неотложную юридическую помощь!</p>
+	</div>
+	{% include "inc-footer.html" %}
+{% endblock %}
