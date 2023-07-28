@@ -1,24 +1,31 @@
 from datetime import date
 from temiraliev_framework.templator import render
 from patterns.creational_patterns import Engine, Logger
-
+from patterns.struct_patterns import AppRouter, Debug
 
 site = Engine()
 logger = Logger('main')
+routes = {}
 
 
+@AppRouter(routes=routes, url='/')
 class Index:
     """ главная страница с категориями """
+    @Debug(name='Index')
     def __call__(self, request):
         return '200 OK', render('index.html', object_list=site.categories)
 
 
+@AppRouter(routes=routes, url='/about/')
 class About:
     """ о проекте """
+
+    @Debug(name='About')
     def __call__(self, request):
         return '200 OK', render('about.html')
 
 
+@AppRouter(routes=routes, url='/therapy-course-list/')
 class TherapyCourseList:
     """ список курсов """
     def __call__(self, request):
@@ -33,6 +40,7 @@ class TherapyCourseList:
             return '200 OK', 'Курсы не добавлены'
 
 
+@AppRouter(routes=routes, url='/create-course/')
 class CreateCourse:
     """ создание курсов """
     category_id = -1
@@ -65,6 +73,7 @@ class CreateCourse:
                 return '200 OK', 'Курсы не добавлены'
 
 
+@AppRouter(routes=routes, url='/create-category/')
 class CreateCategory:
     """ создание категорий """
     def __call__(self, request):
@@ -90,6 +99,7 @@ class CreateCategory:
                                     categories=categories)
 
 
+@AppRouter(routes=routes, url='/category-list/')
 class CategoryList:
     """ Список категорий """
     def __call__(self, request):
@@ -98,18 +108,46 @@ class CategoryList:
                                 objects_list=site.categories)
 
 
+@AppRouter(routes=routes, url='/copy-course/')
+class CopyCourse:
+    """Скопировать курс"""
+    def __call__(self, request):
+        request_params = request['request_params']
+
+        try:
+            name = request_params['name']
+
+            old_course = site.get_course(name)
+            if old_course:
+                new_name = f'copy_{name}'
+                new_course = old_course.clone()
+                new_course.name = new_name
+                site.courses.append(new_course)
+
+            return '200 OK', render('therapy-course-list.html', objects_list=site.courses,
+                                    name=new_course.category.name)
+        except KeyError:
+            return '200 OK', 'Курсы не добавлены'
+
+
+@AppRouter(routes=routes, url='/therapy-programs/')
 class TherapyPrograms:
     """ расписание """
+    @Debug(name='TherapyPrograms')
     def __call__(self, request):
         return '200 OK', render('therapy-programs.html', date=date.today())
 
 
+@AppRouter(routes=routes, url='/contacts/')
 class Contacts:
     """ обратная связь """
+
+    @Debug(name='Contacts')
     def __call__(self, request):
         return '200 OK', render('contact.html', date=request.get('date', None))
 
 
 class NotFound404:
+    @Debug(name='NotFound404')
     def __call__(self, request):
         return '404 WHAT', '404 PAGE Not Found'
