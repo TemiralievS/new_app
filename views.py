@@ -2,9 +2,13 @@ from datetime import date
 from temiraliev_framework.templator import render
 from patterns.creational_patterns import Engine, Logger
 from patterns.struct_patterns import AppRouter, Debug
+from patterns.behavioral_patterns import EmailNotifier, SmsNotifier, CreateView,\
+    BaseSerializer, ListView
 
 site = Engine()
 logger = Logger('main')
+email_notifier = EmailNotifier()
+sms_notifier = SmsNotifier()
 routes = {}
 
 
@@ -25,14 +29,21 @@ class About:
         return '200 OK', render('about.html')
 
 
+@AppRouter(routes=routes, url='/therapy-programs/')
+class TherapyPrograms:
+    """ расписание """
+    @Debug(name='TherapyPrograms')
+    def __call__(self, request):
+        return '200 OK', render('therapy-programs.html', date=date.today())
+
+
 @AppRouter(routes=routes, url='/therapy-course-list/')
 class TherapyCourseList:
     """ список курсов """
     def __call__(self, request):
         logger.log('Список курсов')
         try:
-            category = site.find_category_by_id(
-                int(request['request_params']['id']))
+            category = site.find_category_by_id(int(request['request_params']['id']))
             return '200 OK', render('therapy-course-list.html',
                                     objects_list=category.courses,
                                     name=category.name, id=category.id)
@@ -52,10 +63,15 @@ class CreateCourse:
             name = site.decode_value(name)
 
             category = None
-            if self.category_id != 1:
+            if self.category_id != -1:
                 category = site.find_category_by_id(int(self.category_id))
                 course = site.create_course('record', name, category)
+
+                course.observers.append(email_notifier)
+                course.observers.append(sms_notifier)
+
                 site.courses.append(course)
+
             return '200 OK', render('therapy-course-list.html',
                                     objects_list=category.courses,
                                     name=category.name,
@@ -124,18 +140,55 @@ class CopyCourse:
                 new_course.name = new_name
                 site.courses.append(new_course)
 
-            return '200 OK', render('therapy-course-list.html', objects_list=site.courses,
+            return '200 OK', render('therapy-course-list.html',
+                                    objects_list=site.courses,
                                     name=new_course.category.name)
         except KeyError:
             return '200 OK', 'Курсы не добавлены'
 
 
-@AppRouter(routes=routes, url='/therapy-programs/')
-class TherapyPrograms:
-    """ расписание """
-    @Debug(name='TherapyPrograms')
+@AppRouter(routes=routes, url='/client-list/')
+class ClientListView(ListView):
+    queryset = site.clients
+    template_name = 'client-list.html'
+
+
+@AppRouter(routes=routes, url='/create-client/')
+class ClientCreateView(CreateView):
+    template_name = 'create-client.html'
+
+    def create_obj(self, data: dict):
+        name = data['name']
+        name = site.decode_value(name)
+        new_obj = site.create_user('client', name)
+        site.clients.append(new_obj)
+
+
+@AppRouter(routes=routes, url='/add-client/')
+class AddClientByCourseCreateView(CreateView):
+    template_name = 'add-client.html'
+
+    def get_context_data(self):
+        context = super().get_context_data()
+        context['courses'] = site.courses
+        context['clients'] = site.clients
+        return context
+
+    def create_obj(self, data: dict):
+        course_name = data['course_name']
+        course_name = site.decode_value(course_name)
+        course = site.get_course(course_name)
+        client_name = data['client_name']
+        client_name = site.decode_value(client_name)
+        client = site.get_client(client_name)
+        course.add_client(client)
+
+
+@AppRouter(routes=routes, url='/api/')
+class CourseApi:
+    @Debug(name='CourseApi')
     def __call__(self, request):
-        return '200 OK', render('therapy-programs.html', date=date.today())
+        return '200 OK', BaseSerializer(site.courses).save()
 
 
 @AppRouter(routes=routes, url='/contacts/')
@@ -151,3 +204,4 @@ class NotFound404:
     @Debug(name='NotFound404')
     def __call__(self, request):
         return '404 WHAT', '404 PAGE Not Found'
+
