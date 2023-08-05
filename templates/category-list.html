@@ -11,19 +11,32 @@
 {% block body %}
 	<div id="site_content">
 		{% include "inc-sidebar.html" %}
-      <h1>Список категорий</h1>
 		<div>
-			<a href="/create-category/">Создать новую категорию</a>
-    	</div>
-      <ul>
-          {% for item in objects_list %}
-          <li>
-            {{item.name}}<span>. Количество курсов: {{item.course_count()}}</span>
-			<a href="/therapy-course-list/?id={{item.id}}">Показать курсы</a>
-          </li>
-        {% endfor %}
-      </ul>
-
+			<h1>Список категорий</h1>
+			<p></p>
+			<div>
+				<a href="/create-category/">Создать новую категорию</a>
+			</div>
+		  <ul>
+			  {% for item in objects_list %}
+			  <li>
+				{{item.name}}<span>. Количество курсов: {{item.course_count()}}</span>
+				<a href="/therapy-course-list/?id={{item.id}}">Показать курсы</a>
+			  </li>
+			  {% endfor %}
+		  </ul>
+		</div>
+		<div>
+			<li>
+				<a href="/client-list/">Список клиентов</a>
+			</li>
+			<li>
+				<a href="/create-client/">Создать клиента</a>
+			</li>
+			<li>
+				<a href="/add-client/">Добавить клиента на курс</a>
+			</li>
+		</div>
 	</div>
 	{% include "inc-footer.html" %}
 {% endblock %}

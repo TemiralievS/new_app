@@ -1,9 +1,11 @@
 from copy import deepcopy
 from quopri import decodestring
+from patterns.behavioral_patterns import FileWriter, Subject
 
 
 class User:
-    pass
+    def __init__(self, name):
+        self.name = name
 
 
 class Doctor(User):
@@ -11,19 +13,21 @@ class Doctor(User):
 
 
 class Client(User):
-    pass
+
+    def __init__(self, name):
+        self.courses = []
+        super().__init__(name)
 
 
 class UserFactory:
     types = {
-        'student': Client,
-        'teacher': Doctor
+        'client': Client,
+        'doctor': Doctor
     }
 
-    # порождающий паттерн Фабричный метод
     @classmethod
-    def create(cls, type_):
-        return cls.types[type_]()
+    def create(cls, type_, name):
+        return cls.types[type_](name)
 
 
 # порождающий паттерн Прототип
@@ -33,12 +37,22 @@ class CoursePrototype:
         return deepcopy(self)
 
 
-class Course(CoursePrototype):
+class Course(CoursePrototype, Subject):
 
     def __init__(self, name, category):
         self.name = name
         self.category = category
         self.category.courses.append(self)
+        self.clients = []
+        super().__init__()
+
+    def __getitem__(self, item):
+        return self.clients[item]
+
+    def add_client(self, client: Client):
+        self.clients.append(client)
+        client.courses.append(self)
+        self.notify()
 
 
 class InteractiveCourse(Course):
@@ -47,18 +61,6 @@ class InteractiveCourse(Course):
 
 class RecordCourse(Course):
     pass
-
-
-class CourseFactory:
-    types = {
-        'interactive': InteractiveCourse,
-        'record': RecordCourse
-    }
-
-    # порождающий паттерн Фабричный метод
-    @classmethod
-    def create(cls, type_, name, category):
-        return cls.types[type_](name, category)
 
 
 class Category:
@@ -79,6 +81,17 @@ class Category:
         return result
 
 
+class CourseFactory:
+    types = {
+        'interactive': InteractiveCourse,
+        'record': RecordCourse
+    }
+
+    @classmethod
+    def create(cls, type_, name, category):
+        return cls.types[type_](name, category)
+
+
 # основной интерфейс проекта
 class Engine:
     """engine"""
@@ -89,8 +102,8 @@ class Engine:
         self.categories = []
 
     @staticmethod
-    def create_user(type_):
-        return UserFactory.create(type_)
+    def create_user(type_, name):
+        return UserFactory.create(type_, name)
 
     @staticmethod
     def create_category(name, category=None):
@@ -112,6 +125,11 @@ class Engine:
             if item.name == name:
                 return item
         return None
+
+    def get_client(self, name) -> Client:
+        for item in self.clients:
+            if item.name == name:
+                return item
 
     @staticmethod
     def decode_value(val):
@@ -141,9 +159,10 @@ class SingletonByName(type):
 
 class Logger(metaclass=SingletonByName):
     """вывод в консоль действий"""
-    def __init__(self, name):
+    def __init__(self, name, writer=FileWriter()):
         self.name = name
+        self.writer = writer
 
-    @staticmethod
-    def log(text):
-        print('log--->', text)
+    def log(self, text):
+        text = f'log---> {text}'
+        self.writer.write(text)
