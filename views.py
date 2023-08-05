@@ -1,14 +1,17 @@
 from datetime import date
 from temiraliev_framework.templator import render
-from patterns.creational_patterns import Engine, Logger
+from patterns.creational_patterns import Engine, Logger, MapperRegistry
 from patterns.struct_patterns import AppRouter, Debug
 from patterns.behavioral_patterns import EmailNotifier, SmsNotifier, CreateView,\
     BaseSerializer, ListView
+from patterns.architect import UnitOfWork
 
 site = Engine()
 logger = Logger('main')
 email_notifier = EmailNotifier()
 sms_notifier = SmsNotifier()
+UnitOfWork.new_current()
+UnitOfWork.get_current().set_mapper_registry(MapperRegistry)
 routes = {}
 
 
@@ -149,8 +152,11 @@ class CopyCourse:
 
 @AppRouter(routes=routes, url='/client-list/')
 class ClientListView(ListView):
-    queryset = site.clients
     template_name = 'client-list.html'
+
+    def get_queryset(self):
+        mapper = MapperRegistry.get_current_mapper('client')
+        return mapper.all()
 
 
 @AppRouter(routes=routes, url='/create-client/')
@@ -162,6 +168,8 @@ class ClientCreateView(CreateView):
         name = site.decode_value(name)
         new_obj = site.create_user('client', name)
         site.clients.append(new_obj)
+        new_obj.mark_new()
+        UnitOfWork.get_current().commit()
 
 
 @AppRouter(routes=routes, url='/add-client/')
